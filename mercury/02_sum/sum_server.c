@@ -62,7 +62,10 @@ hg_return_t sum(hg_handle_t handle)
 	printf("%d + %d = %d\n",in.x,in.y,in.x+in.y);
 	num_rpcs += 1;
 
-	/* Sends a response, pointing the returned data to the out struct. */
+	/* Sends a response, pointing the returned data to the out struct.
+	   The first NULL correspond to a potential completion callback that
+	   would be called once the response has been sent, and the second
+	   NULL is a pointer to pass to this callback. */
 	ret = HG_Respond(handle,NULL,NULL,&out);
 	assert(ret == HG_SUCCESS);
 

@@ -77,6 +77,9 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
     ret = HG_Addr_free(hg_class, addr);
     assert(ret == HG_SUCCESS);	
 
+	/* We don't free the handle because it will be 
+	   destroyed in sum_completed later. */
+
 	return HG_SUCCESS;
 }
 
@@ -99,10 +102,7 @@ hg_return_t sum_completed(const struct hg_cb_info *info)
 	ret = HG_Free_output(info->info.forward.handle, &out);
 	assert(ret == HG_SUCCESS);
 
-	/* Free the address */
-//	ret = HG_Addr_free(hg_class, addr);
-//	assert(ret == HG_SUCCESS);
-
+	/* Free the handle. */
 	ret = HG_Destroy(info->info.forward.handle);
 	assert(ret == HG_SUCCESS);
 
