@@ -109,6 +109,10 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
     ret = HG_Addr_free(hg_class, addr);
     assert(ret == HG_SUCCESS);
 
+	/* Free the handle */
+	ret = HG_Destroy(handle);
+	assert(ret == HG_SUCCESS);
+
 	/* Set completed to 1 so we terminate the loop. */
 	completed = 1;
 	return HG_SUCCESS;

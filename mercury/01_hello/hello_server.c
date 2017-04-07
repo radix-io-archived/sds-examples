@@ -89,7 +89,12 @@ int main(int argc, char** argv)
 /* Implementation of the hello_world RPC. */
 hg_return_t hello_world(hg_handle_t h)
 {
+	hg_return_t ret;
+
 	printf("Hello World!\n");
 	num_rpcs += 1;
+	/* We are not going to use the handle anymore, so we should destroy it. */
+	ret = HG_Destroy(h);
+	assert(ret == HG_SUCCESS);
 	return HG_SUCCESS;
 }
