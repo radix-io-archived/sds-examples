@@ -9,7 +9,9 @@ static hg_id_t         sum_rpc_id;
 static hg_addr_t       addr;
 static int completed = 0;
 
+/* This callback is called when the address lookup operation completed. */
 hg_return_t lookup_callback(const struct hg_cb_info *callback_info);
+/* This callback is called when the server has sent its response. */
 hg_return_t sum_completed(const struct hg_cb_info *info);
 
 int main(int argc, char** argv)
@@ -50,7 +52,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-
+/* Implementation of the callback called when address lookup is done. */
 hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 {
 	hg_return_t ret;
@@ -62,33 +64,44 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 	ret = HG_Create(hg_context, addr, sum_rpc_id, &handle);
 	assert(ret == HG_SUCCESS);
 
+	/* Initialize the input parameters of the RPC call */
 	sum_in_t in;
 	in.x = 42;
 	in.y = 23;
 
+	/* Forward the call with its parameters. */
 	ret = HG_Forward(handle, sum_completed, NULL, &in);
 	assert(ret == HG_SUCCESS);
+
+	/* Free the address */
+    ret = HG_Addr_free(hg_class, addr);
+    assert(ret == HG_SUCCESS);	
 
 	return HG_SUCCESS;
 }
 
+/* Implementation of the callback called when receiving 
+ * a response from the server. */
 hg_return_t sum_completed(const struct hg_cb_info *info)
 {
 	hg_return_t ret;
 	
-	sum_out_t out;
 	assert(info->ret == HG_SUCCESS);
 
+	/* Deserialize the data returned by the server. */
+	sum_out_t out;
 	ret = HG_Get_output(info->info.forward.handle, &out);
 	assert(ret == HG_SUCCESS);
 
 	printf("Got response: %d\n", out.ret);
 
+	/* Free the output */
 	ret = HG_Free_output(info->info.forward.handle, &out);
 	assert(ret == HG_SUCCESS);
 
-	ret = HG_Addr_free(hg_class, addr);
-	assert(ret == HG_SUCCESS);
+	/* Free the address */
+//	ret = HG_Addr_free(hg_class, addr);
+//	assert(ret == HG_SUCCESS);
 
 	ret = HG_Destroy(info->info.forward.handle);
 	assert(ret == HG_SUCCESS);

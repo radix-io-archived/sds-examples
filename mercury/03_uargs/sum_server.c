@@ -3,11 +3,14 @@
 #include <mercury.h>
 #include "types.h"
 
-static hg_class_t*     hg_class 	= NULL;
-static hg_context_t*   hg_context 	= NULL;
+/* This structure will encapsulate data about the server. */
+typedef struct {
+	hg_class_t*     hg_class;
+	hg_context_t*   hg_context;
+	int 			num_rpcs;
+} server_state;
 
 static const int TOTAL_RPCS = 10;
-static int num_rpcs = 0;
 
 hg_return_t sum(hg_handle_t h);
 
@@ -15,27 +18,35 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	hg_class = HG_Init("bmi+tcp://localhost:1234", NA_TRUE);
-    assert(hg_class != NULL);
+	server_state state; // Instance of the server's state
+	state.num_rpcs = 0;
 
-    hg_context = HG_Context_create(hg_class);
-    assert(hg_context != NULL);
+	state.hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
+    assert(state.hg_class != NULL);
 
-	hg_id_t rpc_id = MERCURY_REGISTER(hg_class, "sum", sum_in_t, sum_out_t, sum);
+    state.hg_context = HG_Context_create(state.hg_class);
+    assert(state.hg_context != NULL);
+
+	hg_id_t rpc_id = MERCURY_REGISTER(state.hg_class, "sum", sum_in_t, sum_out_t, sum);
+	
+	/* Attach the local server_state to the RPC so we can get a pointer to it when
+	 * the RPC is invoked. */
+	ret = HG_Register_data(state.hg_class, rpc_id, &state, NULL);
+
 	do
 	{
 		unsigned int count;
 		do {
-			ret = HG_Trigger(hg_context, 0, 1, &count);
+			ret = HG_Trigger(state.hg_context, 0, 1, &count);
 		} while((ret == HG_SUCCESS) && count);
 
-		HG_Progress(hg_context, 100);
-	} while(num_rpcs < TOTAL_RPCS);
+		HG_Progress(state.hg_context, 100);
+	} while(state.num_rpcs < TOTAL_RPCS);
 
-	ret = HG_Context_destroy(hg_context);
+	ret = HG_Context_destroy(state.hg_context);
 	assert(ret == HG_SUCCESS);
 
-	ret = HG_Hl_finalize();
+	ret = HG_Finalize(state.hg_class);
 	assert(ret == HG_SUCCESS);
 
 	return 0;
@@ -46,13 +57,17 @@ hg_return_t sum(hg_handle_t handle)
 	hg_return_t ret;
 	sum_in_t in;
 	sum_out_t out;
-	
+
+	// Get the server_state attached to the RPC.
+	struct hg_info* info = HG_Get_info(handle);
+	server_state* stt = HG_Registered_data(info->hg_class, info->id);
+
 	ret = HG_Get_input(handle, &in);
 	assert(ret == HG_SUCCESS);
 
 	out.ret = in.x + in.y;
 	printf("%d + %d = %d\n",in.x,in.y,in.x+in.y);
-	num_rpcs += 1;
+	stt->num_rpcs += 1;
 
 	ret = HG_Respond(handle,NULL,NULL,&out);
 	assert(ret == HG_SUCCESS);
