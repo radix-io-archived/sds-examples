@@ -1,3 +1,5 @@
 add_subdirectory(01_threads)
 add_subdirectory(02_tasks)
 add_subdirectory(03_shared_pool)
+add_subdirectory(04_mutex)
+add_subdirectory(05_eventual)
