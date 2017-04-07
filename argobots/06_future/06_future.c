@@ -28,6 +28,8 @@ void feeder_thread(void *arg)
 	*r = 42+rank;
 	printf("ULT %d in XSTREAM %d set future to: %d\n", (int)(size_t)arg, rank, *r);
 	ABT_future_set(my_future,(void*)r);
+	ABT_future_wait(my_future);
+	printf("ULT %d in XSTREAM %d continuing after future was set\n", (int)(size_t)arg, rank);
 }
 
 int main(int argc, char *argv[])
