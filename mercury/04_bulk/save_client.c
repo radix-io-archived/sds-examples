@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <mercury.h>
 #include "types.h"
 
@@ -7,17 +8,27 @@ typedef struct {
 	hg_class_t* 	hg_class;
 	hg_context_t*	hg_context;
 	hg_id_t			save_rpc_id;
-	hg_bulk_t 		bulk_handle;
-	char*			buffer;
-	size_t			buffer_size;
 	int 			completed;
 } engine_state;
+
+typedef struct {
+	engine_state* 	engine;
+	hg_bulk_t     	bulk_handle;
+	void*			buffer;
+	size_t			size;
+	char*			filename;
+} save_operation;
 
 hg_return_t lookup_callback(const struct hg_cb_info *callback_info);
 hg_return_t save_completed(const struct hg_cb_info *info);
 
 int main(int argc, char** argv)
 {
+	if(argc != 2) {
+		fprintf(stderr,"Usage: %s <filename>\n", argv[0]);
+		exit(0);
+	}
+
 	hg_return_t ret;
 
 	/* Local instance of the engine_state. */
@@ -34,7 +45,16 @@ int main(int argc, char** argv)
 	// Register a RPC function
 	stt.save_rpc_id = MERCURY_REGISTER(stt.hg_class, "save", save_in_t, save_out_t, NULL);
 
-	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &stt, "bmi+tcp://localhost:1234", HG_OP_ID_IGNORE);
+	// Create the save_operation structure
+	save_operation save_op;
+	save_op.engine = &stt;
+	save_op.filename = argv[1];
+	if(access(save_op.filename, F_OK) == -1) {
+    	fprintf(stderr,"File %s doesn't exist or cannot be accessed.\n",save_op.filename);
+		exit(-1);
+	} 
+
+	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &save_op, "bmi+tcp://localhost:1234", HG_OP_ID_IGNORE);
 
 	// Main event loop
 	while(!stt.completed)
@@ -64,12 +84,17 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 	assert(callback_info->ret == 0);
 
 	/* We get the pointer to the engine_state here. */
-	engine_state* state = (engine_state*)(callback_info->arg);
+	save_operation* save_op = (save_operation*)(callback_info->arg);
+	engine_state* state = save_op->engine;
 
-	state->buffer_size = 512;
-	state->buffer = calloc(1, 512);
-	int i;
-	for(i=0; i<512; i++) state->buffer[i] = 65 + (i % 26);
+	/* Check file size to allocate buffer. */
+	FILE* file = fopen(save_op->filename,"r");
+	fseek(file, 0L, SEEK_END);
+	save_op->size = ftell(file);
+	fseek(file, 0L, SEEK_SET);
+	save_op->buffer = calloc(1, save_op->size);
+	fread(save_op->buffer,1,save_op->size,file);
+	fclose(file);
 
 	hg_addr_t addr = callback_info->info.lookup.addr;
 	hg_handle_t handle;
@@ -77,16 +102,20 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 	assert(ret == HG_SUCCESS);
 
 	save_in_t in;
-	in.filename = "save.txt"; //(hg_string_t)calloc(1,128);
-	//sprintf(in.filename,"save.txt");
+	in.filename = save_op->filename;
+	in.size		= save_op->size; 
 
-	ret = HG_Bulk_create(state->hg_class, 1, (void**) &(state->buffer), &(state->buffer_size),
-					HG_BULK_READ_ONLY, &in.bulk_handle);
-	if(ret != HG_SUCCESS) printf("%s\n",HG_Error_to_string(ret));
-	assert(ret == HG_SUCCESS);		
+	ret = HG_Bulk_create(state->hg_class, 1, (void**) &(save_op->buffer), &(save_op->size),
+					HG_BULK_READ_ONLY, &(save_op->bulk_handle));
+	assert(ret == HG_SUCCESS);
+	in.bulk_handle = save_op->bulk_handle;
 
 	/* The state pointer is passed along as user argument. */
-	ret = HG_Forward(handle, save_completed, state, &in);
+	ret = HG_Forward(handle, save_completed, save_op, &in);
+	assert(ret == HG_SUCCESS);
+
+	/* Free the address. */
+	ret = HG_Addr_free(state->hg_class, addr);
 	assert(ret == HG_SUCCESS);
 
 	return HG_SUCCESS;
@@ -97,7 +126,8 @@ hg_return_t save_completed(const struct hg_cb_info *info)
 	hg_return_t ret;
 
 	/* Get the state pointer from the user-provided arguments. */
-	engine_state* state = (engine_state*)(info->arg);
+	save_operation* save_op = (save_operation*)(info->arg);
+	engine_state* state = (engine_state*)(save_op->engine);
 	
 	save_out_t out;
 	assert(info->ret == HG_SUCCESS);
@@ -107,7 +137,9 @@ hg_return_t save_completed(const struct hg_cb_info *info)
 
 	printf("Got response: %d\n", out.ret);
 
-	HG_Bulk_free(state->bulk_handle);
+	ret = HG_Bulk_free(save_op->bulk_handle);
+	assert(ret == HG_SUCCESS);
+
 	ret = HG_Free_output(info->info.forward.handle, &out);
 	assert(ret == HG_SUCCESS);
 

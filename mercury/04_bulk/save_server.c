@@ -62,11 +62,6 @@ hg_return_t save(hg_handle_t handle)
 	hg_return_t ret;
 	save_in_t in;
 
-	rpc_state* my_rpc_state = (rpc_state*)calloc(1,sizeof(rpc_state));
-	my_rpc_state->size = 512;
-	my_rpc_state->buffer = calloc(1,512);	
-	my_rpc_state->handle = handle;
-
 	// Get the server_state attached to the RPC.
 	struct hg_info* info = HG_Get_info(handle);
 	server_state* stt = HG_Registered_data(info->hg_class, info->id);
@@ -74,7 +69,11 @@ hg_return_t save(hg_handle_t handle)
 	ret = HG_Get_input(handle, &in);
 	assert(ret == HG_SUCCESS);
 
+	rpc_state* my_rpc_state = (rpc_state*)calloc(1,sizeof(rpc_state));
+	my_rpc_state->handle = handle;
 	my_rpc_state->filename = strdup(in.filename);
+	my_rpc_state->size = in.size;
+	my_rpc_state->buffer = calloc(1,in.size);
 
 	ret = HG_Bulk_create(stt->hg_class, 1, &(my_rpc_state->buffer),
 				&(my_rpc_state->size), HG_BULK_WRITE_ONLY, &(my_rpc_state->bulk_handle));
@@ -99,7 +98,7 @@ hg_return_t save_bulk_completed(const struct hg_cb_info *info)
 	hg_return_t ret;
 
 	FILE* f = fopen(my_rpc_state->filename,"w+");
-	fwrite(my_rpc_state->buffer, 1, 512, f);
+	fwrite(my_rpc_state->buffer, 1, my_rpc_state->size, f);
 	fclose(f);
 
 	printf("Writing file %s\n", my_rpc_state->filename);
