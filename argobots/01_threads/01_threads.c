@@ -1,28 +1,11 @@
-/* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil ; -*- */
-/*
- * See COPYRIGHT in top-level directory.
- */
-
 #include <stdio.h>
-#include "abt.h"
+#include <abt.h>
 
 #define NUM_XSTREAMS    4
 
-void task_hello(void *arg)
-{
-    printf("Task%d: Hello, world!\n", (int)(size_t)arg);
-}
-
 void thread_hello(void *arg)
 {
-    ABT_xstream xstream;
-    ABT_pool pool;
     printf("ULT%d: Hello, world!\n", (int)(size_t)arg);
-
-    /* Create a task */
-    ABT_xstream_self(&xstream);
-    ABT_xstream_get_main_pools(xstream, 1, &pool);
-    ABT_task_create(pool, task_hello, arg, NULL);
 }
 
 int main(int argc, char *argv[])
