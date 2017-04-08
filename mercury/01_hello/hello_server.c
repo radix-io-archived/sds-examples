@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
+#include "config.h"
 
 static hg_class_t*     hg_class 	= NULL; /* the mercury class */
 static hg_context_t*   hg_context 	= NULL; /* the mercury context */
@@ -10,6 +11,11 @@ static const int TOTAL_RPCS = 10;
 /* number of RPCS already received. */
 static int num_rpcs = 0;
 
+#ifdef HAS_CCI
+static const char* server_address = "cci+tcp://localhost:1234";
+#else
+static const char* server_address = "bmi+tcp://localhost:1234";
+#endif
 /* 
  * hello_world function to expose as an RPC.
  * This function just prints "Hello World"
@@ -33,8 +39,16 @@ int main(int argc, char** argv)
 	 * HG_TRUE is here to specify that mercury will listen for incoming requests.
 	 * (HG_TRUE on servers, HG_FALSE on clients).
 	 */
-	hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
+	hg_class = HG_Init(server_address, HG_TRUE);
     assert(hg_class != NULL);
+
+	/* Get the address of the server */
+	char hostname[128];
+	hg_size_t hostname_size;
+	hg_addr_t self_addr;
+	HG_Addr_self(hg_class,&self_addr);
+	HG_Addr_to_string(hg_class, hostname, &hostname_size, self_addr);
+	printf("Server running at address %s\n",hostname);
 
 	/* Creates a Mercury context from the Mercury class. */
     hg_context = HG_Context_create(hg_class);

@@ -1,11 +1,19 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <mercury.h>
+#include "config.h"
 
 static hg_class_t*     hg_class 	= NULL; /* Pointer to the Mercury class */
 static hg_context_t*   hg_context 	= NULL; /* Pointer to the Mercury context */
 static hg_id_t         hello_rpc_id;		/* ID of the RPC */
 static int completed = 0;					/* Variable indicating if the call has completed */
+
+#ifdef HAS_CCI
+static const char* protocol = "cci+tcp";
+#else
+static const char* protocol = "bmi+tcp";
+#endif
 
 /*
  * This callback will be called after looking up for the server's address.
@@ -19,13 +27,20 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
+	if(argc != 2) {
+		printf("Usage: %s <server_address>\n",argv[0]);
+		exit(0);
+	}
+
+	char* server_address = argv[1];
+
 	/* 
 	 * Initialize an hg_class.
 	 * Here we only specify the protocal since this is a client
 	 * (no need for an address and a port). HG_FALSE indicates that
 	 * the client will not listen for incoming requests.
 	 */
-	hg_class = HG_Init("bmi+tcp", HG_FALSE);
+	hg_class = HG_Init(protocol, HG_FALSE);
 	assert(hg_class != NULL);
 
 	/* Creates a context for the hg_class. */
@@ -54,7 +69,7 @@ int main(int argc, char** argv)
 	 * It can be useful to get this identifier if we want to be able to cancel it using
 	 * HG_Cancel. Here we don't use it so we pass HG_OP_ID_IGNORE.
 	 */
-	ret = HG_Addr_lookup(hg_context, lookup_callback, NULL, "bmi+tcp://localhost:1234", HG_OP_ID_IGNORE);
+	ret = HG_Addr_lookup(hg_context, lookup_callback, NULL, server_address, HG_OP_ID_IGNORE);
 
 	/* Main event loop: we do some progress until completed becomes TRUE. */
 	while(!completed)
