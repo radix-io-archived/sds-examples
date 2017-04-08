@@ -1,0 +1,7 @@
+#ifndef SDS_EXAMPLES_CONFIG_H
+#define SDS_EXAMPLES_CONFIG_H
+
+#cmakedefine HAS_CCI
+#cmakedefine HAS_BMI
+
+#endif

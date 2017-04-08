@@ -28,10 +28,21 @@ endif()
 
 find_package(MERCURY)
 if(${MERCURY_FOUND})
-  find_package(BMI REQUIRED)
+  find_package(BMI)
+  if(${BMI_FOUND})
+    include_directories(${BMI_INCLUDE_DIRS})
+    set(HAS_BMI ON)
+  endif()
+  find_package(CCI)
+  if(${CCI_FOUND})
+    include_directories(${CCI_INCLUDE_DIRS})
+    set(HAS_CCI ON)
+  endif()
+  if(NOT (${BMI_FOUND} OR ${CCI_FOUND}))
+    message(FATAL_ERROR "No transport method (BMI or CCI) found")
+  endif()
   find_package(Boost REQUIRED)
   include_directories(${MERCURY_INCLUDE_DIRS})
-  include_directories(${BMI_INCLUDE_DIRS})
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
@@ -46,7 +57,9 @@ endif()
 
 #-----------------------------------------------------------#
 include_directories(${SDS_EXAMPLES_SOURCE_DIR})
+include_directories(${CMAKE_BINARY_DIR})
 
+configure_file(config.h.in config.h)
 #-----------------------------------------------------------#
 # Set subdirectories for the compilation process
 #-----------------------------------------------------------#
