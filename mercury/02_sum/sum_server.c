@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
+#include "config.h"
 #include "types.h"
 
 static hg_class_t*     hg_class 	= NULL;
@@ -9,6 +10,12 @@ static hg_context_t*   hg_context 	= NULL;
 static const int TOTAL_RPCS = 10;
 static int num_rpcs = 0;
 
+#ifdef HAS_CCI
+static const char* server_address = "cci+tcp://";
+#else
+static const char* server_address = "bmi+tcp://localhost:1234";
+#endif
+
 /* Function to expose as RPC. */
 hg_return_t sum(hg_handle_t h);
 
@@ -16,17 +23,24 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
+	hg_class = HG_Init(server_address, HG_TRUE);
     assert(hg_class != NULL);
 
     hg_context = HG_Context_create(hg_class);
     assert(hg_context != NULL);
 
+	char hostname[128];
+	hg_size_t hostname_size;
+	hg_addr_t self_addr;
+	HG_Addr_self(hg_class,&self_addr);
+	HG_Addr_to_string(hg_class, hostname, &hostname_size, self_addr);
+	printf("Server running at address %s\n",hostname);
+
 	/* 
 	 * This time with use the macro MERCURY_REGISTE to register the RPC function
 	 * along with the input/output structures and their serialization functions.
 	 */
-	hg_id_t rpc_id = MERCURY_REGISTER(hg_class, "sum", sum_in_t, sum_out_t, sum);
+	MERCURY_REGISTER(hg_class, "sum", sum_in_t, sum_out_t, sum);
 	do
 	{
 		unsigned int count;

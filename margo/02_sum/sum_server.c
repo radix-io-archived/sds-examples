@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	 * serialize/deserialize the input and output parameters
 	 * (hello_world doesn't have parameters and doesn't return anything, hence NULL).
 	 */
-	hg_id_t rpc_id = MERCURY_REGISTER(hg_class, "sum", sum_in_t, sum_out_t, sum_handler);
+	MERCURY_REGISTER(hg_class, "sum", sum_in_t, sum_out_t, sum_handler);
 
 	/* NOTE: there isn't anything else for the server to do at this point
      * except wait for itself to be shut down.  The

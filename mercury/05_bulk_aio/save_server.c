@@ -101,13 +101,7 @@ hg_return_t save_bulk_completed(const struct hg_cb_info *info)
 	assert(info->ret == 0);
 
 	rpc_state* my_rpc_state = info->arg;
-	hg_return_t ret;
 
-/*
-	FILE* f = fopen(my_rpc_state->filename,"w+");
-	fwrite(my_rpc_state->buffer, 1, my_rpc_state->size, f);
-	fclose(f);
-*/
 	my_rpc_state->acb.aio_fildes = 
 		open(my_rpc_state->filename, O_WRONLY|O_CREAT, S_IWUSR|S_IRUSR);
     assert(my_rpc_state->acb.aio_fildes > -1);
@@ -132,7 +126,6 @@ hg_return_t save_bulk_completed(const struct hg_cb_info *info)
 
 void save_write_completed(union sigval sig) 
 {
-	int r;
 	hg_return_t ret;
 
 	rpc_state* my_rpc_state = sig.sival_ptr;

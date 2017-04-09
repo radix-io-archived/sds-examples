@@ -115,4 +115,6 @@ hg_return_t save_bulk_completed(const struct hg_cb_info *info)
 	free(my_rpc_state->filename);
     free(my_rpc_state->buffer);
     free(my_rpc_state);
+
+	return HG_SUCCESS;
 }

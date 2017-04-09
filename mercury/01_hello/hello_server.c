@@ -12,7 +12,7 @@ static const int TOTAL_RPCS = 10;
 static int num_rpcs = 0;
 
 #ifdef HAS_CCI
-static const char* server_address = "cci+tcp://localhost:1234";
+static const char* server_address = "cci+tcp://";
 #else
 static const char* server_address = "bmi+tcp://localhost:1234";
 #endif

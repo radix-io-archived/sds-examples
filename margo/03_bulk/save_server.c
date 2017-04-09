@@ -96,5 +96,7 @@ hg_return_t save(hg_handle_t handle)
     HG_Bulk_free(bulk_handle);
     HG_Destroy(handle);
     free(buffer);
+
+	return HG_SUCCESS;
 }
 DEFINE_MARGO_RPC_HANDLER(save)
