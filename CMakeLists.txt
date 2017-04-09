@@ -9,8 +9,8 @@ cmake_minimum_required (VERSION 2.8)
 #-----------------------------------------------------------#
 project(SDS_EXAMPLES)
 
-set(CMAKE_CXX_FLAGS "-g -Wall -Wextra -pedantic")
-
+set(CMAKE_CXX_FLAGS "-g -Wall -Wextra -Wno-unused-parameter -std=c++14")
+set(CMAKE_C_FLAGS "-g -Wall -Wextra -Wno-unused-parameter")
 #-----------------------------------------------------------#
 # Set the location of CMake Modules
 #-----------------------------------------------------------#
@@ -53,6 +53,11 @@ if(${MERCURY_FOUND} AND ${ABT_FOUND})
     include_directories(${MARGO_INCLUDE_DIRS})
     include_directories(${ABT_SNOOZER_INCLUDE_DIRS})
   endif()
+endif()
+
+find_package(SDS_UTILS)
+if(${SDS_UTILS_FOUND})
+  include_directories(${SDS_UTILS_INCLUDE_DIRS})
 endif()
 
 #-----------------------------------------------------------#
