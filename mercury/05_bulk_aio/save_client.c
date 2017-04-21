@@ -2,7 +2,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <mercury.h>
+#include "config.h"
 #include "types.h"
+
+#ifdef HAS_CCI
+static const char* protocol = "cci+tcp";
+#else
+static const char* protocol = "bmi+tcp";
+#endif
 
 typedef struct {
 	hg_class_t* 	hg_class;
@@ -24,8 +31,8 @@ hg_return_t save_completed(const struct hg_cb_info *info);
 
 int main(int argc, char** argv)
 {
-	if(argc != 2) {
-		fprintf(stderr,"Usage: %s <filename>\n", argv[0]);
+	if(argc != 3) {
+		fprintf(stderr,"Usage: %s <server address> <filename>\n", argv[0]);
 		exit(0);
 	}
 
@@ -35,7 +42,7 @@ int main(int argc, char** argv)
 	engine_state stt;
 	stt.completed = 0;
 	// Initialize an hg_class.
-	stt.hg_class = HG_Init("bmi+tcp", HG_FALSE);
+	stt.hg_class = HG_Init(protocol, HG_FALSE);
 	assert(stt.hg_class != NULL);
 
 	// Creates a context for the hg_class.
@@ -48,13 +55,14 @@ int main(int argc, char** argv)
 	// Create the save_operation structure
 	save_operation save_op;
 	save_op.engine = &stt;
-	save_op.filename = argv[1];
+	save_op.filename = argv[2];
 	if(access(save_op.filename, F_OK) == -1) {
     	fprintf(stderr,"File %s doesn't exist or cannot be accessed.\n",save_op.filename);
 		exit(-1);
 	} 
 
-	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &save_op, "bmi+tcp://localhost:1234", HG_OP_ID_IGNORE);
+	char* server_address = argv[1];
+	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &save_op, server_address, HG_OP_ID_IGNORE);
 
 	// Main event loop
 	while(!stt.completed)

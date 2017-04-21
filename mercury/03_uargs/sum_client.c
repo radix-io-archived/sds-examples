@@ -1,7 +1,14 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
+#include "config.h"
 #include "types.h"
+
+#ifdef HAS_CCI
+static const char* protocol = "cci+tcp";
+#else
+static const char* protocol = "bmi+tcp";
+#endif
 
 /*
  * This structure will help avoid using global/static variables.
@@ -22,11 +29,18 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
+	if(argc != 2) {
+		printf("Usage: %s <server_address>\n",argv[0]);
+		exit(0);
+	}
+
+	char* server_address = argv[1];
+
 	/* Local instance of the engine_state. */
 	engine_state stt;
 	stt.completed = 0;
 	// Initialize an hg_class.
-	stt.hg_class = HG_Init("bmi+tcp", HG_FALSE);
+	stt.hg_class = HG_Init(protocol, HG_FALSE);
 	assert(stt.hg_class != NULL);
 
 	// Creates a context for the hg_class.
@@ -38,7 +52,7 @@ int main(int argc, char** argv)
 	// Lookup the address of the server, this is asynchronous and
 	// the result will be handled by lookup_callback once we start the progress loop
 	// The engine_state is passed as user-provided argument, so we can get it in the lookup_callback function.
-	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &stt, "bmi+tcp://localhost:1234", HG_OP_ID_IGNORE);
+	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &stt, server_address, HG_OP_ID_IGNORE);
 
 	// Main event loop
 	while(!stt.completed)
