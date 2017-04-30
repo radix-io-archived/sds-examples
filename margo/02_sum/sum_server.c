@@ -100,7 +100,7 @@ hg_return_t sum(hg_handle_t h)
 	out.ret = in.x + in.y;
 	printf("Computed %d + %d = %d\n",in.x,in.y,out.ret);
 
-	ret = HG_Respond(h,NULL,NULL,&out);
+	ret = margo_respond(mid, h, &out);
 	assert(ret == HG_SUCCESS);
 
 	/* Free the input data. */
