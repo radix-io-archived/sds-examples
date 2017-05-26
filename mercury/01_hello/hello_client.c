@@ -121,8 +121,8 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 	assert(ret == HG_SUCCESS);
 
 	/* Free the address */
-    ret = HG_Addr_free(hg_class, addr);
-    assert(ret == HG_SUCCESS);
+//    ret = HG_Addr_free(hg_class, addr);
+//    assert(ret == HG_SUCCESS);
 
 	/* Free the handle */
 	ret = HG_Destroy(handle);

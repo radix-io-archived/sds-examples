@@ -30,13 +30,6 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	/* 
-	 * Initialize an hg_class.
-	 * Here we only specify the protocal since this is a client
-	 * (no need for an address and a port). HG_FALSE indicates that
-	 * the client will not listen for incoming requests.
-	 */
-
 	// TODO: Initialize Mercury (hg_class) to use bmi+tcp and listening=false
 
 	// TODO: Create the hg_context from the initialized hg_class
@@ -116,7 +109,6 @@ static void get_num(char* line)
 	// TODO: Declare and set the get_num_in_t argument for the RPC
 
 	// TODO: Forward the RPC handle using Margo
-
 
 	get_num_out_t out;
 	// TODO: Get the output of the RPC
