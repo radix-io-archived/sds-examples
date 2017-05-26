@@ -10,7 +10,7 @@
 static hg_class_t*     hg_class 	= NULL; /* Pointer to the Mercury class */
 static hg_context_t*   hg_context 	= NULL; /* Pointer to the Mercury context */
 static margo_instance_id mid		= MARGO_INSTANCE_NULL;
-static hg_id_t         get_num_rpc_id;		/* ID of the RPCs */
+static hg_id_t         get_num_rpc_id;		/* ID of the RPC */
 static hg_id_t				 set_num_rpc_id;
 static hg_addr_t       svr_addr;
 
@@ -110,9 +110,18 @@ static void get_num(char* line)
 
 	// TODO: Forward the RPC handle using Margo
 
+
 	get_num_out_t out;
 	// TODO: Get the output of the RPC
 
+	// TODO: Create the handle for the get_num rpc
+
+	// TODO: Declare and set the get_num_in_t argument for the RPC
+
+	// TODO: Forward the RPC handle using Margo
+
+	get_num_out_t out;
+	// TODO: Get the output of the RPC
 
 	if(out.ret == 0) {
 		printf("%s's number is %s\n",name,out.phone);

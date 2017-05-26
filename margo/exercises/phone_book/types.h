@@ -12,6 +12,7 @@
   - get_num_out_t with a "phone" (string) and a "ret" (int32_t) field
   - set_num_in_t with "name" and "phone" (both strings)
   - set_num_out_t with a "ret" (int32_t)
+<<<<<<< HEAD
  */
 
 #endif

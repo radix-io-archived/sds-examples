@@ -10,8 +10,8 @@
 static hg_class_t*     hg_class 	= NULL; /* Pointer to the Mercury class */
 static hg_context_t*   hg_context 	= NULL; /* Pointer to the Mercury context */
 static margo_instance_id mid		= MARGO_INSTANCE_NULL;
-static hg_id_t         get_num_rpc_id;		/* ID of the RPCs */
-static hg_id_t				 set_num_rpc_id;
+static hg_id_t         get_num_rpc_id;		/* ID of the RPC */
+static hg_id_t         set_num_rpc_id;
 static hg_addr_t       svr_addr;
 
 typedef enum {
@@ -52,24 +52,10 @@ int main(int argc, char** argv)
 	/* Start Margo */
 	mid = margo_init(0, 0, hg_context);
 
-	/* Register a RPC function.
-	 * The first two NULL correspond to what would be pointers to
-	 * serialization/deserialization functions for input and output datatypes
-	 * (not used in this example).
-	 * The third NULL is the pointer to the function (which is on the server,
-	 * so NULL here on the client).
-	 */
+	/* Register RPC functions */
 	get_num_rpc_id = MERCURY_REGISTER(hg_class, "get_num", get_num_in_t, get_num_out_t, NULL);
 	set_num_rpc_id = MERCURY_REGISTER(hg_class, "set_num", set_num_in_t, set_num_out_t, NULL);
 
-	/* Lookup the address of the server, this is asynchronous and
-	 * the result will be handled by lookup_callback once we start the progress loop.
-	 * NULL correspond to a pointer to user data to pass to lookup_callback (we don't use
-	 * any here). The 4th argument is the address of the server.
-	 * The 5th argument is a pointer a variable of type hg_op_id_t, which identifies the operation.
-	 * It can be useful to get this identifier if we want to be able to cancel it using
-	 * HG_Cancel. Here we don't use it so we pass HG_OP_ID_IGNORE.
-	 */
 	margo_addr_lookup(mid, "bmi+tcp://localhost:1234", &svr_addr);
 
 	char line[256];
@@ -95,7 +81,6 @@ int main(int argc, char** argv)
 			t = STOP;
 		}
 	}	
-
 	/* shut down Margo */
     margo_finalize(mid);
 
@@ -131,7 +116,7 @@ static void get_num(char* line)
 	char* end = name;
 	while(isalnum(*end)) end += 1;
 	*end = '\0';
-	
+
 	hg_return_t ret;
 	hg_handle_t handle;
 	ret = HG_Create(hg_context, svr_addr, get_num_rpc_id, &handle);
@@ -154,7 +139,7 @@ static void get_num(char* line)
 
 	ret = HG_Free_output(handle, &out);
 	assert(ret == HG_SUCCESS);
-	
+
 	ret = HG_Destroy(handle);
 	assert(ret == HG_SUCCESS);
 }
@@ -173,29 +158,29 @@ static void set_num(char* line)
 	*end = '\0';
 
 	hg_return_t ret;
-  hg_handle_t handle;
-  ret = HG_Create(hg_context, svr_addr, set_num_rpc_id, &handle);
-  assert(ret == HG_SUCCESS);
+	hg_handle_t handle;
+	ret = HG_Create(hg_context, svr_addr, set_num_rpc_id, &handle);
+	assert(ret == HG_SUCCESS);
 
-  set_num_in_t in;
-  in.name = name;
- 	in.phone = phone; 
+	set_num_in_t in;
+	in.name = name;
+	in.phone = phone; 
 
-  margo_forward(mid, handle, &in);
+	margo_forward(mid, handle, &in);
 
-  set_num_out_t out;
-  ret = HG_Get_output(handle, &out);
-  assert(ret == HG_SUCCESS);
+	set_num_out_t out;
+	ret = HG_Get_output(handle, &out);
+	assert(ret == HG_SUCCESS);
 
 	if(out.ret == 0) {	
 		printf("%s's number has been set to %s\n",name,phone);
 	} else {
 		printf("an error occured\n");
 	}
-  
-  ret = HG_Free_output(handle, &out);
-  assert(ret == HG_SUCCESS);
 
-  ret = HG_Destroy(handle);
-  assert(ret == HG_SUCCESS);
+	ret = HG_Free_output(handle, &out);
+	assert(ret == HG_SUCCESS);
+
+	ret = HG_Destroy(handle);
+	assert(ret == HG_SUCCESS);
 }
