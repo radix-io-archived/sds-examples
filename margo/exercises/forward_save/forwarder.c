@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 
 	server_state state; // Instance of the server's state
 
+	// TODO make sure the forwarder is listening to the right port
 	state.hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
 	assert(state.hg_class != NULL);
 
@@ -38,8 +39,9 @@ int main(int argc, char** argv)
 	state.mid = margo_init(0, 0, state.hg_context);
 	assert(state.mid);
 
-	fwd_rpc_id = MERCURY_REGISTER(state.hg_class, "forward_save", save_in_t, save_out_t, forward_save_handler);
-	save_rpc_id = MERCURY_REGISTER(state.hg_class, "save", save_in_t, save_out_t, NULL);
+	// TODO register the forward_save and save RPCs
+	// fwd_rpc_id = ...
+	// save_rpc_id = ...
 
 	/* Attach the local server_state to the RPC so we can get a pointer to it when
 	 * the RPC is invoked. */
@@ -62,43 +64,34 @@ hg_return_t forward_save(hg_handle_t handle)
 {
 	hg_return_t ret;
 	save_in_t in;
+	save_out_t out;
 	// Get the server_state attached to the RPC.
 	const struct hg_info* info = HG_Get_info(handle);
 	server_state* stt = HG_Registered_data(info->hg_class, info->id);
 
-	ret = HG_Get_input(handle, &in);
-	assert(ret == HG_SUCCESS);
-
-	save_out_t out;
-	out.ret = 0;
-
+	// TODO get the input of the RPC in "in"
+	
 	printf("Forwarding request to backup %s...\n", in.filename);
 
+	// TODO do a lookup of the save_server
 	hg_addr_t svr_addr;
-	ret = margo_addr_lookup(stt->mid, "bmi+tcp://localhost:1235", &svr_addr);
-	assert(ret == HG_SUCCESS);
 
+	// TODO create the RPC handle for a "save" RPC to the server
 	hg_handle_t save_handle;
-	ret = HG_Create(stt->hg_context, svr_addr, save_rpc_id, &save_handle);
-	assert(ret == HG_SUCCESS);
 
-	ret = margo_forward(stt->mid, save_handle, &in);
-	assert(ret == HG_SUCCESS);
+	// TODO forward the RPC using Margo
 
-	ret = HG_Get_output(save_handle, &out);
-	assert(ret == HG_SUCCESS);
+	// TODO get the output of the RPC sent to the server
 
-	ret = margo_respond(stt->mid, handle, &out);
-	assert(ret == HG_SUCCESS);
+	// TODO respond to the client
 
-	ret = HG_Free_output(handle, &out);
-	assert(ret == HG_SUCCESS);
+	// TODO free the out variable
 
-	ret = HG_Free_input(handle, &in);
-	assert(ret == HG_SUCCESS);
+	// TODO free the in variable
 
-	HG_Destroy(handle);
-	HG_Destroy(save_handle);
+	// TODO destroy then "handle"
+
+	// TODO destroy the "save_handle"
 
 	return HG_SUCCESS;
 }

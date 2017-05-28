@@ -22,7 +22,8 @@ int main(int argc, char** argv)
 
 	server_state state; // Instance of the server's state
 
-	state.hg_class = HG_Init("bmi+tcp://localhost:1235", HG_TRUE);
+	// TODO change the port number on which the server is listening
+	state.hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
 	assert(state.hg_class != NULL);
 
 	state.hg_context = HG_Context_create(state.hg_class);

@@ -9,7 +9,7 @@
 MERCURY_GEN_PROC(save_in_t,
     ((hg_string_t)(filename))\
 	((hg_size_t)(size))\
-	((hg_string_t)(address))\
+	// TODO add an "address" field (string)
     ((hg_bulk_t)(bulk_handle)))
 
 MERCURY_GEN_PROC(save_out_t, ((int32_t)(ret)))

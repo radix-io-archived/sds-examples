@@ -42,7 +42,10 @@ int main(int argc, char** argv)
 	/* Local instance of the engine_state. */
 	engine_state stt;
 	// Initialize an hg_class.
-	stt.hg_class = HG_Init("bmi+tcp", HG_TRUE);
+	// TODO because we are expecting a backup server to connect back to the client
+	// we need the client to be listening for connection. Change the following line
+	// accordingly.
+	stt.hg_class = HG_Init("bmi+tcp", HG_FALSE);
 	assert(stt.hg_class != NULL);
 
 	// Creates a context for the hg_class.
@@ -65,7 +68,8 @@ int main(int argc, char** argv)
 	stt.mid = margo_init(0, 0, stt.hg_context);
 
 	// Register a RPC function
-	stt.rpc_id = MERCURY_REGISTER(stt.hg_class, "forward_save", save_in_t, save_out_t, NULL);
+	// TODO Register "save_forward" instead of "save"
+	stt.rpc_id = MERCURY_REGISTER(stt.hg_class, "save", save_in_t, save_out_t, NULL);
 
 	margo_addr_lookup(stt.mid, "bmi+tcp://localhost:1234", &(stt.svr_addr));
 
@@ -141,12 +145,9 @@ void run_my_rpc(void *arg)
 	in.size		= save_op->size; 
 	
 	hg_addr_t addr;
-	HG_Addr_self(state->hg_class, &addr);
 	char addr_string[128];
-	hg_size_t addr_size = 128;
-	HG_Addr_to_string(state->hg_class, addr_string, &addr_size, addr);
-	HG_Addr_free(state->hg_class, addr);
-	in.address = addr_string;
+	// TODO use HG_Addr_self, HG_Addr_to_string and HG_Addr_free to
+	// get the client's address and serialize it, then free it
 
 	ret = HG_Bulk_create(state->hg_class, 1, (void**) &(save_op->buffer), &(save_op->size),
 					HG_BULK_READ_ONLY, &(save_op->bulk_handle));
