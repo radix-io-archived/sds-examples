@@ -78,7 +78,7 @@ hg_return_t save(hg_handle_t handle)
 	save_in_t in;
 
 	// Get the server_state attached to the RPC.
-	struct hg_info* info = HG_Get_info(handle);
+	const struct hg_info* info = HG_Get_info(handle);
 	server_state* stt = HG_Registered_data(info->hg_class, info->id);
 
 	ret = HG_Get_input(handle, &in);
