@@ -75,7 +75,8 @@ hg_return_t save(hg_handle_t handle)
 
 	/* get address of client */
 	hg_addr_t client_addr;
-	ret = margo_addr_lookup(stt->mid, in.address, &client_addr);
+	// TODO uncomment this line after having added the "address" field in types.h
+	//ret = margo_addr_lookup(stt->mid, in.address, &client_addr);
 	assert(ret == HG_SUCCESS);
 
 	/* initiate bulk transfer from client to server */
