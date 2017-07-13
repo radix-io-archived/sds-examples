@@ -1,17 +1,18 @@
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include <abt.h>
-#include <sds-utils/dispatch.hpp>
+
+#include <sds-utils/foreach.hpp>
 
 #define NUM_XSTREAMS    4
 
 /* This is the function executed by each of the threads */
-int hello(int i, const std::string& message){
+void hello(const std::string& message){
 	int rank;
 	ABT_xstream_self_rank(&rank);
-	std::cout << "ULT " << i << " in XSTREAM " << rank << " says " << message << std::endl;
-	return 42+i*rank;
+	std::cout << "ULT in XSTREAM " << rank << " says " << message << std::endl;
 }
  
 int main(int argc, char *argv[])
@@ -36,16 +37,13 @@ int main(int argc, char *argv[])
 				ABT_xstream_get_main_pools(xstreams[i], 1, &pools[i]);
 		}
 
-		int r;
-		for(i = 0; i < NUM_XSTREAMS; i++) {
-			r = sdsu::dispatch_to_ult(pools[i], hello, i, std::string("Hello World using Thread"));
-			/* see sdsu::dispatch_to_ult_void for functions that return void */
-			std::cout << " Returned " << r << std::endl;
-			std::string msg("Hello World using Tasks");
-			r = sdsu::dispatch_to_task(pools[i], hello, i, msg);
-			std::cout << " Returned " << r << std::endl;
-			/* see sdsu::dispatch_to_task_void for functions that return void */
-		}
+		std::vector<std::string> v;
+		v.emplace_back("Hello");
+		v.emplace_back("Bonjour");
+		v.emplace_back("Hallo");
+		v.emplace_back("Hola");
+
+		sdsu::ult_foreach(pools.begin(), pools.end(), v.begin(), v.end(), hello);
 
 		for (i = 1; i < NUM_XSTREAMS; i++) {
 				ABT_xstream_join(xstreams[i]);
