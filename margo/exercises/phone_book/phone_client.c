@@ -7,12 +7,10 @@
 #include <margo.h>
 #include "types.h"
 
-static hg_class_t*     hg_class 	= NULL; /* Pointer to the Mercury class */
-static hg_context_t*   hg_context 	= NULL; /* Pointer to the Mercury context */
 static margo_instance_id mid		= MARGO_INSTANCE_NULL;
-static hg_id_t         get_num_rpc_id;		/* ID of the RPC */
-static hg_id_t				 set_num_rpc_id;
-static hg_addr_t       svr_addr;
+static hg_id_t    get_num_rpc_id;		/* ID of the RPC */
+static hg_id_t    set_num_rpc_id;
+static hg_addr_t  svr_addr;
 
 typedef enum {
 	SET_PHONE,
@@ -30,23 +28,14 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	// TODO: Initialize Mercury (hg_class) to use bmi+tcp and listening=false
-
-	// TODO: Create the hg_context from the initialized hg_class
-
-	// TODO: Initialize Argobots
-
-	/* set primary ES to idle without polling */
-	ABT_snoozer_xstream_self_set();
-
 	// TODO: Initialize Margo (get mid). We will use 0 progress thread and 0 RPC thread
 
-	// TODO: Call MERCURY_REGISTER to initialize get_num_rpc_id and set_num_rpc_id
+	// TODO: Call MARGO_REGISTER to initialize get_num_rpc_id and set_num_rpc_id
 
 	// TODO: Do an address lookup to initialize svr_addr, using Margo
 
 	// Here we read lines entered by the user. These lines can start with
-  // set, get, or stop, followed by arguments
+	// set, get, or stop, followed by arguments
 	char line[256];
 	op_type t = UNKNOWN;
 	while(t != STOP) {
@@ -72,12 +61,6 @@ int main(int argc, char** argv)
 	}	
 
 	// TODO: Shut down Margo 
-
-	// TODO: Finalize Argobots
-
-	// TODO: Destroy the mercury context
-
-	// TODO: Finalize mercury
 	return 0;
 }
 
@@ -104,14 +87,6 @@ static void get_num(char* line)
 	hg_return_t ret;
 	hg_handle_t handle;
 
-	// TODO: Create the handle for the get_num rpc
-
-	// TODO: Declare and set the get_num_in_t argument for the RPC
-
-	// TODO: Forward the RPC handle using Margo
-
-
-	get_num_out_t out;
 	// TODO: Get the output of the RPC
 
 	// TODO: Create the handle for the get_num rpc
@@ -120,14 +95,16 @@ static void get_num(char* line)
 
 	// TODO: Forward the RPC handle using Margo
 
-	get_num_out_t out;
-	// TODO: Get the output of the RPC
+	// TODO: Declare get_num_out_t out; and get the output of the RPC
 
+	// TODO uncomment the following
+	/*
 	if(out.ret == 0) {
 		printf("%s's number is %s\n",name,out.phone);
 	} else {
 		printf("%s's number is not known\n",name);
 	}
+	*/
 
 	// TODO: Free the "out" variable
 
@@ -148,7 +125,7 @@ static void set_num(char* line)
 	*end = '\0';
 
 	hg_return_t ret;
-  hg_handle_t handle;
+	hg_handle_t handle;
 
 	// TODO: Create the RPC handle for the set_num RPC
 
@@ -157,13 +134,16 @@ static void set_num(char* line)
 	// TODO: Forward the RPC using Margo
 
 	// TODO: Get the RPC's output
-  set_num_out_t out;
+	// set_num_out_t out;
 
+	// TODO: uncomment this
+	/*
 	if(out.ret == 0) {	
 		printf("%s's number has been set to %s\n",name,phone);
 	} else {
 		printf("an error occured\n");
 	}
+	*/
 
 	// TODO: Free the RPC output  
 

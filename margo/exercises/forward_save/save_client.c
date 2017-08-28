@@ -8,9 +8,7 @@
 #include "types.h"
 
 typedef struct {
-	hg_class_t* 	hg_class;
-	hg_context_t*	hg_context;
-	hg_id_t			rpc_id;
+	hg_id_t			save_rpc_id;
 	margo_instance_id mid;
 	hg_addr_t       svr_addr;
 } engine_state;
@@ -23,7 +21,7 @@ typedef struct {
 	char*			filename;
 } save_operation;
 
-static void run_my_rpc(void *arg);
+static void send_file(save_operation *arg);
 
 int main(int argc, char** argv)
 {
@@ -32,99 +30,48 @@ int main(int argc, char** argv)
 		exit(0);
 	}
 
-	hg_return_t ret;
-	ABT_xstream xstream;
-	ABT_pool pool;
-	ABT_thread* threads;
-	save_operation* operations;
 	int num_files = argc-1;
 
 	/* Local instance of the engine_state. */
 	engine_state stt;
-	// Initialize an hg_class.
-	// TODO because we are expecting a backup server to connect back to the client
-	// we need the client to be listening for connection. Change the following line
-	// accordingly.
-	stt.hg_class = HG_Init("bmi+tcp", HG_FALSE);
-	assert(stt.hg_class != NULL);
-
-	// Creates a context for the hg_class.
-	stt.hg_context = HG_Context_create(stt.hg_class);
-	assert(stt.hg_context != NULL);
-
-	// Initialize Argobots
-	ABT_init(argc, argv);
-
-	// set primary ES to idle without polling
-	ABT_snoozer_xstream_self_set();
-
-	// get main ES
-	ABT_xstream_self(&xstream); 
-
-	// get main pool
-	ABT_xstream_get_main_pools(xstream, 1, &pool);
 
 	// Start Margo
-	stt.mid = margo_init(0, 0, stt.hg_context);
+	stt.mid = margo_init("bmi+tcp", MARGO_CLIENT_MODE, 0, 0);
 
 	// Register a RPC function
-	// TODO Register "save_forward" instead of "save"
-	stt.rpc_id = MERCURY_REGISTER(stt.hg_class, "save", save_in_t, save_out_t, NULL);
+	stt.save_rpc_id = MARGO_REGISTER(stt.mid, "save", save_in_t, save_out_t, NULL);
 
 	margo_addr_lookup(stt.mid, "bmi+tcp://localhost:1234", &(stt.svr_addr));
 
-	threads = (ABT_thread*)malloc(num_files*sizeof(ABT_thread));
-	operations = (save_operation*)malloc(num_files*sizeof(save_operation));
 	int i;
 	for(i=0; i<num_files; i++) {
+
+		save_operation operation;
 		// Create the save_operation structure
-		operations[i].engine = &stt;
-		operations[i].filename = argv[i+1];
+		operation.engine = &stt;
+		operation.filename = argv[i+1];
 
 		// Check that file exists
-		if(access(operations[i].filename, F_OK) == -1) {
-			fprintf(stderr,"File %s doesn't exist or cannot be accessed.\n",operations[i].filename);
+		if(access(operation.filename, F_OK) == -1) {
+			fprintf(stderr,"File %s doesn't exist or cannot be accessed.\n", operation.filename);
 			exit(-1);
 		}
-	}
-	// Start threads
-	for(i=0; i<num_files; i++) {
-		ABT_thread_create(pool, run_my_rpc, &operations[i],
-			ABT_THREAD_ATTR_NULL, &threads[i]);
+
+		send_file(&operation);
 	}
 
-	/* Yield to one of the threads */
-	ABT_thread_yield_to(threads[0]);
-
-	for(i=0; i<num_files; i++) {
-		ABT_thread_join(threads[i]);
-		ABT_thread_free(&threads[i]);
-	}
+	/* free address */
+	margo_addr_free(stt.mid, stt.svr_addr);
 
 	/* Finalize Margo */
 	margo_finalize(stt.mid);
-
-	/* Finalize Argobots */
-	ABT_finalize();
-
-	free(threads);
-	free(operations);
-
-	// Destroy the context
-	ret = HG_Context_destroy(stt.hg_context);
-	assert(ret == HG_SUCCESS);
-
-	// Finalize the hg_class.
-	hg_return_t err = HG_Finalize(stt.hg_class);
-	assert(err == HG_SUCCESS);
 	return 0;
 }
 
-void run_my_rpc(void *arg)
+void send_file(save_operation* save_op)
 {
 	hg_return_t ret;
 	/* We get the pointer to the engine_state here. */
-	save_operation* save_op = (save_operation*)arg;
 	engine_state* state = save_op->engine;
 
 	/* Check file size to allocate buffer. */
@@ -137,19 +84,17 @@ void run_my_rpc(void *arg)
 	fclose(file);
 
 	hg_handle_t handle;
-	ret = HG_Create(state->hg_context, state->svr_addr, state->rpc_id, &handle);
+	ret = margo_create(state->mid, state->svr_addr, state->save_rpc_id, &handle);
 	assert(ret == HG_SUCCESS);
 	
 	save_in_t in;
 	in.filename = save_op->filename;
 	in.size		= save_op->size; 
-	
-	hg_addr_t addr;
-	char addr_string[128];
-	// TODO use HG_Addr_self, HG_Addr_to_string and HG_Addr_free to
-	// get the client's address and serialize it, then free it
 
-	ret = HG_Bulk_create(state->hg_class, 1, (void**) &(save_op->buffer), &(save_op->size),
+	// TODO use margo_addr_self and margo_addr_to_string to
+	// add the client address into the "in" structure
+
+	ret = margo_bulk_create(state->mid, 1, (void**) &(save_op->buffer), &(save_op->size),
 					HG_BULK_READ_ONLY, &(save_op->bulk_handle));
 	assert(ret == HG_SUCCESS);
 	in.bulk_handle = save_op->bulk_handle;
@@ -158,17 +103,17 @@ void run_my_rpc(void *arg)
 
 	save_out_t out;
 
-	ret = HG_Get_output(handle, &out);
+	ret = margo_get_output(handle, &out);
 	assert(ret == HG_SUCCESS);
 
 	printf("Saving file %s => got response: %d\n", in.filename, out.ret);
 
-	ret = HG_Bulk_free(save_op->bulk_handle);
+	ret = margo_bulk_free(save_op->bulk_handle);
 	assert(ret == HG_SUCCESS);
 
-	ret = HG_Free_output(handle, &out);
+	ret = margo_free_output(handle, &out);
 	assert(ret == HG_SUCCESS);
 
-	ret = HG_Destroy(handle);
+	ret = margo_destroy(handle);
 	assert(ret == HG_SUCCESS);
 }
