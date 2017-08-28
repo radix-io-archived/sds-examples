@@ -6,50 +6,17 @@
 #include <margo.h>
 #include "types.h"
 
-/* This structure will encapsulate data about the server. */
-typedef struct {
-	hg_class_t*     hg_class;
-	hg_context_t*   hg_context;
-	margo_instance_id mid;
-} server_state;
-
 static hg_return_t save(hg_handle_t h);
 DECLARE_MARGO_RPC_HANDLER(save);
 
 int main(int argc, char** argv)
 {
-	hg_return_t ret;
+	margo_instance_id mid = margo_init("bmi+tcp://localhost:1234", MARGO_SERVER_MODE, 0, 0);
+	assert(mid);
 
-	server_state state; // Instance of the server's state
-
-	state.hg_class = HG_Init("bmi+tcp://localhost:1234", HG_TRUE);
-    assert(state.hg_class != NULL);
-
-    state.hg_context = HG_Context_create(state.hg_class);
-    assert(state.hg_context != NULL);
-
-	ABT_init(argc,argv);
-
-	ABT_snoozer_xstream_self_set();
-
-	state.mid = margo_init(0, 0, state.hg_context);
-	assert(state.mid);
-
-	hg_id_t rpc_id = MERCURY_REGISTER(state.hg_class, "save", save_in_t, save_out_t, save_handler);
+	MARGO_REGISTER(mid, "save", save_in_t, save_out_t, save);
 	
-	/* Attach the local server_state to the RPC so we can get a pointer to it when
-	 * the RPC is invoked. */
-	ret = HG_Register_data(state.hg_class, rpc_id, &state, NULL);
-
-	margo_wait_for_finalize(state.mid);
-
-	ABT_finalize();
-
-	ret = HG_Context_destroy(state.hg_context);
-	assert(ret == HG_SUCCESS);
-
-	ret = HG_Finalize(state.hg_class);
-	assert(ret == HG_SUCCESS);
+	margo_wait_for_finalize(mid);
 
 	return 0;
 }
@@ -58,22 +25,22 @@ hg_return_t save(hg_handle_t handle)
 {
 	hg_return_t ret;
 	save_in_t in;
-	// Get the server_state attached to the RPC.
-	const struct hg_info* info = HG_Get_info(handle);
-	server_state* stt = HG_Registered_data(info->hg_class, info->id);
 
-	ret = HG_Get_input(handle, &in);
+	const struct hg_info* info = margo_get_info(handle);
+	margo_instance_id mid = margo_hg_handle_get_instance(handle);
+
+	ret = margo_get_input(handle, &in);
 	assert(ret == HG_SUCCESS);
 
 	void* buffer = calloc(1,in.size);
 	hg_bulk_t bulk_handle;
 
-	ret = HG_Bulk_create(stt->hg_class, 1, &buffer,
+	ret = margo_bulk_create(mid, 1, &buffer,
 				&in.size, HG_BULK_WRITE_ONLY, &bulk_handle);
     assert(ret == HG_SUCCESS);
 
     /* initiate bulk transfer from client to server */
-	ret = margo_bulk_transfer(stt->mid, HG_BULK_PULL,
+	ret = margo_bulk_transfer(mid, HG_BULK_PULL,
         info->addr, in.bulk_handle, 0,
         bulk_handle, 0, in.size);
     assert(ret == 0);
@@ -87,14 +54,14 @@ hg_return_t save(hg_handle_t handle)
 	save_out_t out;
 	out.ret = 0;
 
-	ret = margo_respond(stt->mid, handle, &out);
+	ret = margo_respond(mid, handle, &out);
     assert(ret == HG_SUCCESS);
 
-	ret = HG_Free_input(handle, &in);
+	ret = margo_free_input(handle, &in);
 	assert(ret == HG_SUCCESS);
 
-    HG_Bulk_free(bulk_handle);
-    HG_Destroy(handle);
+    margo_bulk_free(bulk_handle);
+    margo_destroy(handle);
     free(buffer);
 
 	return HG_SUCCESS;
