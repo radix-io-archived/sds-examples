@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include <mercury.h>
 #include "types.h"
@@ -71,7 +70,7 @@ hg_return_t sum(hg_handle_t h)
 	assert(ret == HG_SUCCESS);
 
 	/* We are not going to use the handle anymore, so we should destroy it. */
-	ret = margo_destroy(h);
+	ret = margo_destroy(mid, h);
 	assert(ret == HG_SUCCESS);
 
 	if(num_rpcs == TOTAL_RPCS) {

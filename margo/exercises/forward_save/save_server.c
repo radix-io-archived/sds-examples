@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <mercury.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include "types.h"
 
@@ -67,7 +66,7 @@ hg_return_t save(hg_handle_t handle)
 	assert(ret == HG_SUCCESS);
 
     margo_bulk_free(bulk_handle);
-    margo_destroy(handle);
+    margo_destroy(mid, handle);
     free(buffer);
 
 	return HG_SUCCESS;

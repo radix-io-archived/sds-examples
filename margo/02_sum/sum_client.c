@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include "types.h"
 
@@ -34,14 +33,14 @@ int main(int argc, char** argv)
 		printf("Got response: %d+%d = %d\n", args.x, args.y, resp.ret);
 
 		margo_free_output(h,&resp);
-		margo_destroy(h);
+		margo_destroy(mid, h);
 	}
 
 	/* free the address */
 	margo_addr_free(mid, svr_addr);
 
 	/* shut down Margo */
-    margo_finalize(mid);
+	margo_finalize(mid);
 
 	return 0;
 }

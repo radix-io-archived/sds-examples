@@ -53,7 +53,8 @@ hg_return_t hello_world(hg_handle_t h)
 	printf("Hello World!\n");
 	num_rpcs += 1;
 	/* We are not going to use the handle anymore, so we should destroy it. */
-	ret = margo_destroy(h);
+	margo_instance_id mid = margo_hg_handle_get_instance(h);
+	ret = margo_destroy(mid,h);
 	assert(ret == HG_SUCCESS);
 
 	if(num_rpcs == TOTAL_RPCS) {
@@ -61,7 +62,6 @@ hg_return_t hello_world(hg_handle_t h)
 		 * margo_wait_for_finalize() to suspend until this RPC executes, so there
 		 * is no need to send any extra signal to notify it.
 		 */
-		margo_instance_id mid = margo_hg_handle_get_instance(h);
 		margo_finalize(mid);
 	}
 

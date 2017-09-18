@@ -34,13 +34,13 @@ int main(int argc, char** argv)
 	margo_forward(mid, handle, NULL);
 
 	/* destroy the handle */
-	margo_destroy(handle);
+	margo_destroy(mid, handle);
 
 	/* free address */
 	margo_addr_free(mid, svr_addr);
 
 	/* Shut down Margo */
-    margo_finalize(mid);
+	margo_finalize(mid);
 
 	return 0;
 }

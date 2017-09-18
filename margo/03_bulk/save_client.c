@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include <mercury.h>
 #include "types.h"
@@ -111,6 +110,6 @@ void send_file(save_operation* save_op)
 	ret = margo_free_output(handle, &out);
 	assert(ret == HG_SUCCESS);
 
-	ret = margo_destroy(handle);
+	ret = margo_destroy(state->mid,handle);
 	assert(ret == HG_SUCCESS);
 }
