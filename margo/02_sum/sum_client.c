@@ -8,6 +8,11 @@
 /* Main function. */
 int main(int argc, char** argv)
 {
+	if(argc != 2) {
+		fprintf(stderr,"Usage: %s <server address>\n", argv[0]);
+		exit(0);
+	}
+
 	/* Start Margo */
 	margo_instance_id mid = margo_init("bmi+tcp", MARGO_CLIENT_MODE, 0, 0);
 
@@ -16,7 +21,7 @@ int main(int argc, char** argv)
 	
 	/* Lookup the address of the server */
 	hg_addr_t svr_addr;
-	margo_addr_lookup(mid, "bmi+tcp://localhost:1234", &svr_addr);
+	margo_addr_lookup(mid, argv[1], &svr_addr);
 		
 	int i;
 	sum_in_t args;

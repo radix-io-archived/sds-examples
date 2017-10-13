@@ -28,8 +28,16 @@ DECLARE_MARGO_RPC_HANDLER(sum)
 int main(int argc, char** argv)
 {
 	/* Initialize Margo */
-	margo_instance_id mid = margo_init("bmi+tcp://localhost:1234", MARGO_SERVER_MODE, 0, 0);
+	margo_instance_id mid = margo_init("bmi+tcp", MARGO_SERVER_MODE, 0, 0);
     assert(mid);
+
+	hg_addr_t my_address;
+	margo_addr_self(mid, &my_address);
+	char addr_str[128];
+	size_t addr_str_size = 128;
+	margo_addr_to_string(mid, addr_str, &addr_str_size, my_address);
+	margo_addr_free(mid,my_address);
+	printf("Server running at address %s\n", addr_str);
 
 	/* Register the RPC by its name ("sum") */
 	MARGO_REGISTER(mid, "sum", sum_in_t, sum_out_t, sum);

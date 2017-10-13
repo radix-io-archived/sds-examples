@@ -5,6 +5,11 @@
 /* Main function. */
 int main(int argc, char** argv)
 {
+	if(argc != 2) {
+		fprintf(stderr,"Usage: %s <server address>\n", argv[0]);
+		exit(0);
+	}
+
 	hg_return_t ret;
 	margo_instance_id mid = MARGO_INSTANCE_NULL;
 	
@@ -23,7 +28,7 @@ int main(int argc, char** argv)
 
 	/* Lookup the address of the server */
 	hg_addr_t svr_addr;
-	margo_addr_lookup(mid, "bmi+tcp://localhost:1234", &svr_addr);
+	margo_addr_lookup(mid, argv[1], &svr_addr);
 	
 	/* Create a RPC handle to send to the server */
 	hg_handle_t handle;
