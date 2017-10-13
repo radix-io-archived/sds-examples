@@ -1,14 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
-
-#ifdef HAS_CCI
-static const char* protocol = "cci+tcp";
-#else
-static const char* protocol = "bmi+tcp";
-#endif
 
 /*
  * This structure will help avoid using global/static variables.
@@ -29,12 +22,13 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	if(argc != 2) {
-		printf("Usage: %s <server_address>\n",argv[0]);
+	if(argc != 3) {
+		printf("Usage: %s <protocol> <server_address>\n",argv[0]);
+		printf("Example: %s bmi+tcp bmi+tcp://1.2.3.4:1234\n",argv[0]);
 		exit(0);
 	}
-
-	char* server_address = argv[1];
+	char* protocol = argv[1];
+	char* server_address = argv[2];
 
 	/* Local instance of the engine_state. */
 	engine_state stt;

@@ -96,7 +96,7 @@ void send_file(save_operation* save_op)
 	assert(ret == HG_SUCCESS);
 	in.bulk_handle = save_op->bulk_handle;
 
-	margo_forward(state->mid, handle, &in);
+	margo_forward(handle, &in);
 
 	save_out_t out;
 

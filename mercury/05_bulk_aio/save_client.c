@@ -2,14 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
-
-#ifdef HAS_CCI
-static const char* protocol = "cci+tcp";
-#else
-static const char* protocol = "bmi+tcp";
-#endif
 
 typedef struct {
 	hg_class_t* 	hg_class;
@@ -31,10 +24,12 @@ hg_return_t save_completed(const struct hg_cb_info *info);
 
 int main(int argc, char** argv)
 {
-	if(argc != 3) {
-		fprintf(stderr,"Usage: %s <server address> <filename>\n", argv[0]);
+	if(argc != 4) {
+		fprintf(stderr,"Usage: %s <protocol> <server address> <filename>\n", argv[0]);
 		exit(0);
 	}
+
+	const char* protocol = argv[1];
 
 	hg_return_t ret;
 
@@ -55,13 +50,13 @@ int main(int argc, char** argv)
 	// Create the save_operation structure
 	save_operation save_op;
 	save_op.engine = &stt;
-	save_op.filename = argv[2];
+	save_op.filename = argv[3];
 	if(access(save_op.filename, F_OK) == -1) {
     	fprintf(stderr,"File %s doesn't exist or cannot be accessed.\n",save_op.filename);
 		exit(-1);
 	} 
 
-	char* server_address = argv[1];
+	char* server_address = argv[2];
 	ret = HG_Addr_lookup(stt.hg_context, lookup_callback, &save_op, server_address, HG_OP_ID_IGNORE);
 
 	// Main event loop

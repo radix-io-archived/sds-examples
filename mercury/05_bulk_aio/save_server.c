@@ -5,14 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
-
-#ifdef HAS_CCI
-static const char* server_address = "cci+tcp://";
-#else
-static const char* server_address = "bmi+tcp://localhost:1234";
-#endif
 
 /* This structure will encapsulate data about the server. */
 typedef struct {
@@ -37,7 +30,14 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
+	if(argc != 2) {
+		printf("Usage: %s <server address>\n", argv[0]);
+		exit(0);
+	}
+
 	server_state state; // Instance of the server's state
+
+	const char* server_address = argv[1];
 
 	state.hg_class = HG_Init(server_address, HG_TRUE);
     assert(state.hg_class != NULL);

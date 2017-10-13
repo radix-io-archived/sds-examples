@@ -94,7 +94,7 @@ static void get_num(char* line)
 	get_num_in_t in;
 	in.name = name;
 
-	margo_forward(mid, handle, &in);
+	margo_forward(handle, &in);
 
 	get_num_out_t out;
 	ret = margo_get_output(handle, &out);
@@ -135,7 +135,7 @@ static void set_num(char* line)
 	in.name = name;
 	in.phone = phone; 
 
-	margo_forward(mid, handle, &in);
+	margo_forward(handle, &in);
 
 	set_num_out_t out;
 	ret = margo_get_output(handle, &out);

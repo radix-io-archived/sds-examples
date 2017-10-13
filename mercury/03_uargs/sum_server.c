@@ -1,14 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
-
-#ifdef HAS_CCI
-static const char* server_address = "cci+tcp://";
-#else
-static const char* server_address = "bmi+tcp://localhost:1234";
-#endif
 
 /* This structure will encapsulate data about the server. */
 typedef struct {
@@ -24,6 +17,13 @@ hg_return_t sum(hg_handle_t h);
 int main(int argc, char** argv)
 {
 	hg_return_t ret;
+
+	if(argc != 2) {
+		printf("Usage: %s <server address>\n", argv[0]);
+		exit(0);
+	}
+
+	const char* server_address = argv[1];
 
 	server_state state; // Instance of the server's state
 	state.num_rpcs = 0;

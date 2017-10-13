@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
 
 static hg_class_t*     hg_class 	= NULL;
@@ -10,12 +9,6 @@ static hg_context_t*   hg_context 	= NULL;
 static hg_id_t         sum_rpc_id;
 static hg_addr_t       addr;
 static int completed = 0;
-
-#ifdef HAS_CCI
-static const char* protocol = "cci+tcp";
-#else
-static const char* protocol = "bmi+tcp";
-#endif
 
 /* This callback is called when the address lookup operation completed. */
 hg_return_t lookup_callback(const struct hg_cb_info *callback_info);
@@ -26,11 +19,13 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	if(argc != 2) {
-		printf("Usage: %s <server_address>\n",argv[0]);
+	if(argc != 3) {
+		printf("Usage: %s <protocol> <server_address>\n",argv[0]);
+		printf("Example: %s bmi+tcp bmi+tcp://1.2.3.4:1234\n",argv[0]);
 		exit(0);
 	}
-	char* server_address = argv[1];
+	char* protocol = argv[1];
+	char* server_address = argv[2];
 
 	// Initialize an hg_class.
 	hg_class = HG_Init(protocol, HG_FALSE);

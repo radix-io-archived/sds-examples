@@ -57,7 +57,7 @@ hg_return_t save(hg_handle_t handle)
 	save_out_t out;
 	out.ret = 0;
 
-	ret = margo_respond(mid, handle, &out);
+	ret = margo_respond(handle, &out);
     assert(ret == HG_SUCCESS);
 
 	ret = margo_free_input(handle, &in);

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <mercury.h>
-#include "config.h"
 
 static hg_class_t*     hg_class 	= NULL; /* the mercury class */
 static hg_context_t*   hg_context 	= NULL; /* the mercury context */
@@ -11,11 +11,6 @@ static const int TOTAL_RPCS = 10;
 /* number of RPCS already received. */
 static int num_rpcs = 0;
 
-#ifdef HAS_CCI
-static const char* server_address = "cci+tcp://";
-#else
-static const char* server_address = "bmi+tcp://localhost:1234";
-#endif
 /* 
  * hello_world function to expose as an RPC.
  * This function just prints "Hello World"
@@ -32,6 +27,13 @@ hg_return_t hello_world(hg_handle_t h);
 int main(int argc, char** argv)
 {
 	hg_return_t ret;
+
+	if(argc != 2) {
+		printf("Usage: %s <server address>\nExample: %s bmi+tcp://localhost:1234\n",argv[0], argv[0]);
+		exit(0);
+	}
+
+	char* server_address = argv[0];
 
 	/* Initialize Mercury and get an hg_class handle.
 	 * bmi+tcp is the protocol to use.

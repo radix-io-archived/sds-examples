@@ -58,7 +58,7 @@ hg_return_t get_num(hg_handle_t h)
 	out.phone = (char*)phonebook_find(myphonebook, in.name);
 	if(out.phone == NULL) out.ret = -1;
 
-	ret = margo_respond(mid, h, &out);
+	ret = margo_respond(h, &out);
 	assert(ret == HG_SUCCESS);
 
 	/* Free the input data. */
@@ -87,7 +87,7 @@ hg_return_t set_num(hg_handle_t h)
 
 	out.ret = 0;
 
-	ret = margo_respond(mid, h, &out);
+	ret = margo_respond(h, &out);
 	assert(ret == HG_SUCCESS);
 
 	ret = margo_free_input(h, &in);

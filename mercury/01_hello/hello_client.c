@@ -2,18 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mercury.h>
-#include "config.h"
 
 static hg_class_t*     hg_class 	= NULL; /* Pointer to the Mercury class */
 static hg_context_t*   hg_context 	= NULL; /* Pointer to the Mercury context */
 static hg_id_t         hello_rpc_id;		/* ID of the RPC */
 static int completed = 0;					/* Variable indicating if the call has completed */
-
-#ifdef HAS_CCI
-static const char* protocol = "cci+tcp";
-#else
-static const char* protocol = "bmi+tcp";
-#endif
 
 /*
  * This callback will be called after looking up for the server's address.
@@ -27,12 +20,14 @@ int main(int argc, char** argv)
 {
 	hg_return_t ret;
 
-	if(argc != 2) {
-		printf("Usage: %s <server_address>\n",argv[0]);
+	if(argc != 3) {
+		printf("Usage: %s <protocol> <server_address>\n",argv[0]);
+		printf("Example: %s bmi+tcp bmi+tcp://1.2.3.4:1234\n",argv[0]);
 		exit(0);
 	}
 
-	char* server_address = argv[1];
+	char* protocol = argv[1];
+	char* server_address = argv[2];
 
 	/* 
 	 * Initialize an hg_class.
@@ -119,10 +114,6 @@ hg_return_t lookup_callback(const struct hg_cb_info *callback_info)
 	 */
 	ret = HG_Forward(handle, NULL, NULL, NULL);
 	assert(ret == HG_SUCCESS);
-
-	/* Free the address */
-//    ret = HG_Addr_free(hg_class, addr);
-//    assert(ret == HG_SUCCESS);
 
 	/* Free the handle */
 	ret = HG_Destroy(handle);

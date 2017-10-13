@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <mercury.h>
-#include "config.h"
 #include "types.h"
 
 static hg_class_t*     hg_class 	= NULL;
@@ -10,18 +9,19 @@ static hg_context_t*   hg_context 	= NULL;
 static const int TOTAL_RPCS = 10;
 static int num_rpcs = 0;
 
-#ifdef HAS_CCI
-static const char* server_address = "cci+tcp://";
-#else
-static const char* server_address = "bmi+tcp://localhost:1234";
-#endif
-
 /* Function to expose as RPC. */
 hg_return_t sum(hg_handle_t h);
 
 int main(int argc, char** argv)
 {
 	hg_return_t ret;
+
+	if(argc != 2) {
+		printf("Usage: %s <server address>\n", argv[0]);
+		exit(0);
+	}
+
+	const char* server_address = argv[1];
 
 	hg_class = HG_Init(server_address, HG_TRUE);
     assert(hg_class != NULL);

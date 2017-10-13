@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	assert(ret == HG_SUCCESS);	
 
 	/* forward RPC */
-	margo_forward(mid, handle, NULL);
+	margo_forward(handle, NULL);
 
 	/* destroy the handle */
 	margo_destroy(handle);

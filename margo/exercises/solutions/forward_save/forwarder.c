@@ -50,13 +50,13 @@ hg_return_t forward_save(hg_handle_t handle)
 	ret = margo_create(mid, svr_addr, save_rpc_id, &save_handle);
 	assert(ret == HG_SUCCESS);
 
-	ret = margo_forward(mid, save_handle, &in);
+	ret = margo_forward(save_handle, &in);
 	assert(ret == HG_SUCCESS);
 
 	ret = HG_Get_output(save_handle, &out);
 	assert(ret == HG_SUCCESS);
 
-	ret = margo_respond(mid, handle, &out);
+	ret = margo_respond(handle, &out);
 	assert(ret == HG_SUCCESS);
 
 	ret = margo_free_output(handle, &out);

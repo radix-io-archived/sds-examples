@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 
 		hg_handle_t h;
 		margo_create(mid, svr_addr, sum_rpc_id, &h);
-		margo_forward(mid, h, &args);
+		margo_forward(h, &args);
 		
 		sum_out_t resp;
 		margo_get_output(h, &resp);
