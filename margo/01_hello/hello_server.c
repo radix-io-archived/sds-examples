@@ -3,7 +3,7 @@
 #include <margo.h>
 
 /* after serving this number of rpcs, the server will shut down. */
-static const int TOTAL_RPCS = 16;
+static const int TOTAL_RPCS = 4;
 /* number of RPCS already received. */
 static int num_rpcs = 0;
 
