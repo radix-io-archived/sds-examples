@@ -58,18 +58,21 @@ hg_return_t hello_world(hg_handle_t h)
 {
 	hg_return_t ret;
 
+    margo_instance_id mid = margo_hg_handle_get_instance(h);
+
 	printf("Hello World!\n");
 	num_rpcs += 1;
-	/* We are not going to use the handle anymore, so we should destroy it. */
-	ret = margo_destroy(h);
-	assert(ret == HG_SUCCESS);
+
+    /* We are not going to use the handle anymore, so we should destroy it. */
+    ret = margo_destroy(h);
+    assert(ret == HG_SUCCESS);
 
 	if(num_rpcs == TOTAL_RPCS) {
 		/* NOTE: we assume that the server daemon is using
 		 * margo_wait_for_finalize() to suspend until this RPC executes, so there
 		 * is no need to send any extra signal to notify it.
 		 */
-		margo_instance_id mid = margo_hg_handle_get_instance(h);
+        /* Finalize Margo */
 		margo_finalize(mid);
 	}
 
