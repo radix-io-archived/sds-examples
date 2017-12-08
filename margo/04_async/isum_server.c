@@ -1,9 +1,13 @@
 #include <assert.h>
 #include <stdio.h>
+#include <abt.h>
+#include <abt-snoozer.h>
 #include <margo.h>
+#include <mercury.h>
+#include "types.h"
 
 /* after serving this number of rpcs, the server will shut down. */
-static const int TOTAL_RPCS = 4;
+static const int TOTAL_RPCS = 16;
 /* number of RPCS already received. */
 static int num_rpcs = 0;
 
@@ -15,8 +19,8 @@ static int num_rpcs = 0;
  * All Mercury RPCs must have a signature
  *   hg_return_t f(hg_handle_t h)
  */
-hg_return_t hello_world(hg_handle_t h);
-DECLARE_MARGO_RPC_HANDLER(hello_world)
+hg_return_t sum(hg_handle_t h);
+DECLARE_MARGO_RPC_HANDLER(sum)
 
 /*
  * main function.
@@ -24,7 +28,7 @@ DECLARE_MARGO_RPC_HANDLER(hello_world)
 int main(int argc, char** argv)
 {
 	/* Initialize Margo */
-	margo_instance_id mid = margo_init("bmi+tcp", MARGO_SERVER_MODE, 0, -1);
+	margo_instance_id mid = margo_init("bmi+tcp", MARGO_SERVER_MODE, 0, 0);
     assert(mid);
 
 	hg_addr_t my_address;
@@ -35,13 +39,8 @@ int main(int argc, char** argv)
 	margo_addr_free(mid,my_address);
 	printf("Server running at address %s\n", addr_str);
 
-	/* Register the RPC by its name ("hello") */
-	hg_id_t rpc_id = MARGO_REGISTER(mid, "hello", void, void, hello_world);
-
-	/* We call this function to tell Mercury that hello_world will not
-	 * send any response back to the client.
-	 */
-	margo_registered_disable_response(mid, rpc_id, HG_TRUE);
+	/* Register the RPC by its name ("sum") */
+	MARGO_REGISTER(mid, "sum", sum_in_t, sum_out_t, sum);
 
 	/* NOTE: there isn't anything else for the server to do at this point
      * except wait for itself to be shut down.  The
@@ -53,29 +52,46 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-/* Implementation of the hello_world RPC. */
-hg_return_t hello_world(hg_handle_t h)
+/* Implementation of the RPC. */
+hg_return_t sum(hg_handle_t h)
 {
 	hg_return_t ret;
-
-    margo_instance_id mid = margo_hg_handle_get_instance(h);
-
-	printf("Hello World!\n");
 	num_rpcs += 1;
 
-    /* We are not going to use the handle anymore, so we should destroy it. */
-    ret = margo_destroy(h);
-    assert(ret == HG_SUCCESS);
+	sum_in_t in;
+	sum_out_t out;
+
+	margo_instance_id mid = margo_hg_handle_get_instance(h);
+
+	/* Deserialize the input from the received handle. */
+	ret = margo_get_input(h, &in);
+	assert(ret == HG_SUCCESS);
+
+	/* Compute the result. */
+	out.ret = in.x + in.y;
+	printf("Computed %d + %d = %d\n",in.x,in.y,out.ret);
+
+    margo_thread_sleep(mid, 1000);
+
+	ret = margo_respond(h, &out);
+	assert(ret == HG_SUCCESS);
+
+	/* Free the input data. */
+	ret = margo_free_input(h, &in);
+	assert(ret == HG_SUCCESS);
+
+	/* We are not going to use the handle anymore, so we should destroy it. */
+	ret = margo_destroy(h);
+	assert(ret == HG_SUCCESS);
 
 	if(num_rpcs == TOTAL_RPCS) {
 		/* NOTE: we assume that the server daemon is using
 		 * margo_wait_for_finalize() to suspend until this RPC executes, so there
 		 * is no need to send any extra signal to notify it.
 		 */
-        /* Finalize Margo */
 		margo_finalize(mid);
 	}
 
 	return HG_SUCCESS;
 }
-DEFINE_MARGO_RPC_HANDLER(hello_world)
+DEFINE_MARGO_RPC_HANDLER(sum)

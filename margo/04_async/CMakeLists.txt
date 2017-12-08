@@ -1,0 +1,5 @@
+add_executable(04_margo_isum_server isum_server.c)
+target_link_libraries(04_margo_isum_server margo)
+
+add_executable(04_margo_isum_client isum_client.c)
+target_link_libraries(04_margo_isum_client margo)
