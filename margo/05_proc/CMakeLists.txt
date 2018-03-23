@@ -1,0 +1,5 @@
+add_executable(05_margo_hash_server varproc_server.c)
+target_link_libraries(05_margo_hash_server margo)
+
+add_executable(05_margo_hash_client varproc_client.c)
+target_link_libraries(05_margo_hash_client margo)
