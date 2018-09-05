@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include <mercury.h>
 #include "types.h"

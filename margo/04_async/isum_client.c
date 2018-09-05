@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <abt.h>
-#include <abt-snoozer.h>
 #include <margo.h>
 #include "types.h"
 
