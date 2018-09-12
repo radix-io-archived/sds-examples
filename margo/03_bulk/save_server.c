@@ -10,7 +10,7 @@ DECLARE_MARGO_RPC_HANDLER(save);
 
 int main(int argc, char** argv)
 {
-	margo_instance_id mid = margo_init("bmi+tcp://localhost:1234", MARGO_SERVER_MODE, 0, 0);
+	margo_instance_id mid = margo_init("tcp://localhost:1234", MARGO_SERVER_MODE, 0, 0);
 	assert(mid);
 
 	MARGO_REGISTER(mid, "save", save_in_t, save_out_t, save);

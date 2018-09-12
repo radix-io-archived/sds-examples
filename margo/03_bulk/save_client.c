@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	engine_state stt;
 
 	// Start Margo
-	stt.mid = margo_init("bmi+tcp", MARGO_CLIENT_MODE, 0, 0);
+	stt.mid = margo_init("tcp", MARGO_CLIENT_MODE, 0, 0);
 
 	// Register a RPC function
 	stt.save_rpc_id = MARGO_REGISTER(stt.mid, "save", save_in_t, save_out_t, NULL);

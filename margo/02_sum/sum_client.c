@@ -1,3 +1,4 @@
+#define _GLIBCXX_DEBUG
 #include <assert.h>
 #include <stdio.h>
 #include <abt.h>
@@ -13,7 +14,7 @@ int main(int argc, char** argv)
 	}
 
 	/* Start Margo */
-	margo_instance_id mid = margo_init("bmi+tcp", MARGO_CLIENT_MODE, 0, 0);
+	margo_instance_id mid = margo_init("tcp", MARGO_CLIENT_MODE, 0, 0);
 
 	/* Register a RPC function */
 	hg_id_t sum_rpc_id = MARGO_REGISTER(mid, "sum", sum_in_t, sum_out_t, NULL);

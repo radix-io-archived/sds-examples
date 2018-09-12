@@ -24,7 +24,7 @@ DECLARE_MARGO_RPC_HANDLER(hello_world)
 int main(int argc, char** argv)
 {
 	/* Initialize Margo */
-	margo_instance_id mid = margo_init("bmi+tcp", MARGO_SERVER_MODE, 0, -1);
+	margo_instance_id mid = margo_init("tcp", MARGO_SERVER_MODE, 0, -1);
     assert(mid);
 
 	hg_addr_t my_address;

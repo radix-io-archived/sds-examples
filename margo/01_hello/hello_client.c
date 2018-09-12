@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	
 
 	/* Start Margo */
-	mid = margo_init("bmi+tcp",MARGO_CLIENT_MODE, 0, 0);
+	mid = margo_init("tcp",MARGO_CLIENT_MODE, 0, 0);
 	assert(mid);
 
 	/* Register a RPC function */
